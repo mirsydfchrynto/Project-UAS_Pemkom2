@@ -4,10 +4,8 @@
  */
 package app;
 
-import com.mongodb.client.MongoCollection;
 import javax.swing.JOptionPane;
 import org.bson.Document;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class LoginFrame extends javax.swing.JFrame {
@@ -30,7 +28,7 @@ public class LoginFrame extends javax.swing.JFrame {
         jLabel1.setText(bundle.getString("login.toRegister")); // "Belum punya akun?" / "Don't have account?"// ✅ cukup panggil langsung
         labelUsername.setText(bundle.getString("login.username"));
         labelPassword.setText(bundle.getString("login.password"));
-        btnLoginbtnLogin.setText(bundle.getString("login.button"));
+        btnLogin.setText(bundle.getString("login.button"));
     }
 
     /**
@@ -47,7 +45,7 @@ public class LoginFrame extends javax.swing.JFrame {
         labelUsername = new javax.swing.JLabel();
         labelPassword = new javax.swing.JLabel();
         txtUsername = new javax.swing.JTextField();
-        btnLoginbtnLogin = new javax.swing.JButton();
+        btnLogin = new javax.swing.JButton();
         txtPassword = new javax.swing.JPasswordField();
         cmbLanguage = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
@@ -55,6 +53,8 @@ public class LoginFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
         labelUsername.setText("Username");
 
@@ -66,12 +66,12 @@ public class LoginFrame extends javax.swing.JFrame {
             }
         });
 
-        btnLoginbtnLogin.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
-        btnLoginbtnLogin.setText("Masuk");
-        btnLoginbtnLogin.setToolTipText("");
-        btnLoginbtnLogin.addActionListener(new java.awt.event.ActionListener() {
+        btnLogin.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        btnLogin.setText("Masuk");
+        btnLogin.setToolTipText("");
+        btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLoginbtnLoginActionPerformed(evt);
+                btnLoginActionPerformed(evt);
             }
         });
 
@@ -107,12 +107,12 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addComponent(cmbLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(30, 30, 30))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(60, 60, 60)
+                .addGap(80, 80, 80)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
-                        .addComponent(btnLoginbtnLogin))
+                        .addComponent(btnLogin))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(labelUsername, javax.swing.GroupLayout.DEFAULT_SIZE, 103, Short.MAX_VALUE)
@@ -121,7 +121,7 @@ public class LoginFrame extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
                             .addComponent(txtUsername))))
-                .addContainerGap(73, Short.MAX_VALUE))
+                .addContainerGap(80, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -145,15 +145,15 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnLoginbtnLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(74, Short.MAX_VALUE))
+                    .addComponent(btnLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.ipadx = 60;
-        gridBagConstraints.ipady = 91;
+        gridBagConstraints.ipadx = 74;
+        gridBagConstraints.ipady = 65;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         getContentPane().add(jPanel1, gridBagConstraints);
 
@@ -164,7 +164,7 @@ public class LoginFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUsernameActionPerformed
 
-    private void btnLoginbtnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginbtnLoginActionPerformed
+    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         String username = txtUsername.getText();
         String password = new String(txtPassword.getPassword());
 
@@ -175,20 +175,24 @@ public class LoginFrame extends javax.swing.JFrame {
                 String decryptedPassword = CryptoUtil.decrypt(encryptedPassword); // dekripsi
 
                 if (password.equals(decryptedPassword)) {
+                    SoundUtil.play("success.wav");
                     JOptionPane.showMessageDialog(this, "Login berhasil!");
                     new MainFrame().setVisible(true); // buka main frame
                     this.dispose();
                 } else {
+                    SoundUtil.play("notif.wav");
                     JOptionPane.showMessageDialog(this, "Password salah!");
                 }
             } catch (Exception e) {
+                SoundUtil.play("notif.wav");
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Terjadi error saat memproses login.");
             }
         } else {
+            SoundUtil.play("notif.wav");
             JOptionPane.showMessageDialog(this, "Username tidak ditemukan!");
         }
-    }//GEN-LAST:event_btnLoginbtnLoginActionPerformed
+    }//GEN-LAST:event_btnLoginActionPerformed
 
     private void cmbLanguageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbLanguageActionPerformed
         // TODO add your handling code here:
@@ -226,7 +230,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnLoginbtnLogin;
+    private javax.swing.JButton btnLogin;
     private javax.swing.JComboBox<String> cmbLanguage;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

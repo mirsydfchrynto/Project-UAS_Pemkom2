@@ -22,6 +22,14 @@ public class MainFrame extends JFrame {
 
         loadDataBarangAsync(); // gunakan versi async
         setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+        javax.swing.Timer timer = new javax.swing.Timer(5000, e -> {
+            boolean online = NetworkUtil.isInternetAvailable();
+            lblStatus.setText("Status: " + (online ? "Online" : "Offline"));
+            lblStatus.setForeground(online ? new java.awt.Color(0, 128, 0) : new java.awt.Color(255, 0, 0));
+        });
+        timer.start(); // mulai timer
+
     }
 
     private void loadDataFromMongo() {
@@ -87,7 +95,7 @@ public class MainFrame extends JFrame {
         btnSimpan = new javax.swing.JButton();
         btnTambah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        lblTitle = new javax.swing.JLabel();
+        lblStatus = new javax.swing.JLabel();
         txtCari = new javax.swing.JTextField();
         Pencarian = new javax.swing.JLabel();
         logout = new javax.swing.JButton();
@@ -96,7 +104,7 @@ public class MainFrame extends JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(102, 255, 204));
+        jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
         tblBarang.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -129,8 +137,7 @@ public class MainFrame extends JFrame {
             }
         });
 
-        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTitle.setText("Dashboard");
+        lblStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
 
         txtCari.setToolTipText("");
         txtCari.addActionListener(new java.awt.event.ActionListener() {
@@ -159,9 +166,9 @@ public class MainFrame extends JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addComponent(lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(49, 49, 49)
+                .addGap(28, 28, 28)
+                .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(39, 39, 39)
                 .addComponent(btnTambah)
                 .addGap(6, 6, 6)
                 .addComponent(btnSimpan)
@@ -181,7 +188,7 @@ public class MainFrame extends JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(15, 15, 15)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnTambah)
                     .addComponent(btnSimpan)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -193,7 +200,7 @@ public class MainFrame extends JFrame {
                             .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(Pencarian))))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
@@ -202,6 +209,7 @@ public class MainFrame extends JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
+        SoundUtil.play("pen.wav");
         String nama = JOptionPane.showInputDialog(this, "Nama Barang:");
         String kategori = JOptionPane.showInputDialog(this, "Kategori:");
         String tanggal = JOptionPane.showInputDialog(this, "Tanggal Beli (yyyy-mm-dd):");
@@ -217,6 +225,7 @@ public class MainFrame extends JFrame {
     }//GEN-LAST:event_btnTambahActionPerformed
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        SoundUtil.play("pen.wav");
         List<Item> list = MongoDBHelper.loadAll(); // ambil semua dari Mongo
         LocalBackup.saveToFile(list, "backup.ser"); // simpan ke file serialization
         JOptionPane.showMessageDialog(this, "Data berhasil dibackup ke backup.ser");
@@ -224,6 +233,7 @@ public class MainFrame extends JFrame {
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
+        SoundUtil.play("pen.wav");
         int selectedRow = tblBarang.getSelectedRow();
         if (selectedRow >= 0) {
             String nama = model.getValueAt(selectedRow, 0).toString();
@@ -257,6 +267,7 @@ public class MainFrame extends JFrame {
 
     private void logoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutActionPerformed
         // TODO add your handling code here:
+        SoundUtil.play("pen.wav");
         new LoginFrame().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_logoutActionPerformed
@@ -304,7 +315,7 @@ public class MainFrame extends JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lblTitle;
+    private javax.swing.JLabel lblStatus;
     private javax.swing.JButton logout;
     private javax.swing.JTable tblBarang;
     private javax.swing.JTextField txtCari;

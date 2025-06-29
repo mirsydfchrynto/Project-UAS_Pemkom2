@@ -1,26 +1,30 @@
+
 package app;
 
+import java.io.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
 import javax.swing.SwingWorker;
 import javax.swing.table.TableRowSorter;
 
+
 public class MainFrame extends JFrame {
 
-    private DefaultTableModel model;
+    private final DefaultTableModel model;
     private List<Item> barangList;
-    private TableRowSorter<DefaultTableModel> rowSorter;
+    private final TableRowSorter<DefaultTableModel> rowSorter;
+    private boolean sudahLoadSer = false;
 
     public MainFrame() {
-        initComponents(); // harus di atas agar tblBarang tidak null
-        model = (DefaultTableModel) tblBarang.getModel(); // baru ambil model
-        model.setColumnIdentifiers(new Object[]{"Nama", "Kategori", "Tanggal Beli", "Kondisi"});
+        initComponents();
+        model = (DefaultTableModel) tblBarang.getModel();
+        model.setColumnIdentifiers(new Object[]{"Nama", "Kategori", "Tanggal Beli", "Kondisi", "Jumlah"});
 
-        rowSorter = new TableRowSorter<>(model); // inisialisasi TableRowSorter kalau dipakai
-        tblBarang.setRowSorter(rowSorter); // pasang sorter ke tabel
+        rowSorter = new TableRowSorter<>(model);
+        tblBarang.setRowSorter(rowSorter);
 
-        loadDataBarangAsync(); // gunakan versi async
+        loadDataBarangAsync();
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         javax.swing.Timer timer = new javax.swing.Timer(5000, e -> {
@@ -28,32 +32,35 @@ public class MainFrame extends JFrame {
             lblStatus.setText("Status: " + (online ? "Online" : "Offline"));
             lblStatus.setForeground(online ? new java.awt.Color(0, 128, 0) : new java.awt.Color(255, 0, 0));
         });
-        timer.start(); // mulai timer
-
+        timer.start();
     }
 
     private void loadDataFromMongo() {
-        model.setRowCount(0); // clear table
+        model.setRowCount(0);
         barangList = MongoDBHelper.loadAll();
         for (Item item : barangList) {
             model.addRow(new Object[]{
                 item.getNama(),
                 item.getKategori(),
                 item.getTanggalBeli(),
-                item.getKondisi()
+                item.getKondisi(),
+                item.getJumlah()
             });
+
         }
     }
 
     private void tampilkanKeTabel(List<Item> items) {
-        model.setRowCount(0); // kosongkan dulu
+        model.setRowCount(0);
         for (Item item : items) {
             model.addRow(new Object[]{
                 item.getNama(),
                 item.getKategori(),
                 item.getTanggalBeli(),
-                item.getKondisi()
+                item.getKondisi(),
+                item.getJumlah()
             });
+
         }
     }
 
@@ -61,22 +68,21 @@ public class MainFrame extends JFrame {
         new SwingWorker<List<Item>, Void>() {
             @Override
             protected List<Item> doInBackground() throws Exception {
-                // Ini akan dijalankan di background thread
                 return MongoDBHelper.loadAll();
             }
 
             @Override
             protected void done() {
                 try {
-                    List<Item> items = get(); // ambil hasilnya
-                    tampilkanKeTabel(items); // method kamu untuk masukkan ke JTable
+                    List<Item> items = get();
+                    tampilkanKeTabel(items);
                     JOptionPane.showMessageDialog(null, "Data berhasil dimuat.");
                 } catch (Exception e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(null, "Gagal memuat data.");
                 }
             }
-        }.execute(); // Mulai thread
+        }.execute();
     }
 
     /**
@@ -95,10 +101,13 @@ public class MainFrame extends JFrame {
         btnSimpan = new javax.swing.JButton();
         btnTambah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        lblStatus = new javax.swing.JLabel();
         txtCari = new javax.swing.JTextField();
         Pencarian = new javax.swing.JLabel();
         logout = new javax.swing.JButton();
+        btnload = new javax.swing.JButton();
+        btnEdit = new javax.swing.JButton();
+        lblStatus = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
 
         jButton1.setText("jButton1");
 
@@ -113,10 +122,18 @@ public class MainFrame extends JFrame {
             new String [] {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblBarang);
 
-        btnSimpan.setText("simpan");
+        btnSimpan.setText("backup");
         btnSimpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSimpanActionPerformed(evt);
@@ -137,8 +154,6 @@ public class MainFrame extends JFrame {
             }
         });
 
-        lblStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-
         txtCari.setToolTipText("");
         txtCari.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -153,11 +168,32 @@ public class MainFrame extends JFrame {
 
         Pencarian.setText("Pencarian");
 
-        logout.setText("Logout");
+        logout.setText("logout");
         logout.setToolTipText("");
         logout.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 logoutActionPerformed(evt);
+            }
+        });
+
+        btnload.setText("load");
+        btnload.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnloadActionPerformed(evt);
+            }
+        });
+
+        btnEdit.setText("edit");
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
+
+        jButton3.setText("refresh");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
             }
         });
 
@@ -167,16 +203,22 @@ public class MainFrame extends JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(28, 28, 28)
-                .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(39, 39, 39)
-                .addComponent(btnTambah)
-                .addGap(6, 6, 6)
+                .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(btnSimpan)
-                .addGap(6, 6, 6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnload)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnTambah)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnEdit)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnHapus)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(logout)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                 .addComponent(Pencarian)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -188,12 +230,15 @@ public class MainFrame extends JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(15, 15, 15)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnTambah)
-                    .addComponent(btnSimpan)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btnSimpan)
+                        .addComponent(btnload)
+                        .addComponent(btnTambah)
                         .addComponent(btnHapus)
-                        .addComponent(logout))
+                        .addComponent(logout)
+                        .addComponent(btnEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton3))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(1, 1, 1)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -216,7 +261,17 @@ public class MainFrame extends JFrame {
         String kondisi = JOptionPane.showInputDialog(this, "Kondisi:");
 
         if (nama != null && kategori != null && tanggal != null && kondisi != null) {
-            Item item = new Item(nama, kategori, tanggal, kondisi);
+            String jumlahStr = JOptionPane.showInputDialog(this, "Jumlah:");
+            int jumlah = 0;
+            try {
+                jumlah = Integer.parseInt(jumlahStr);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Jumlah harus berupa angka.");
+                return;
+            }
+
+            Item item = new Item(nama, kategori, tanggal, kondisi, jumlah);
+
             MongoDBHelper.insertItem(item); // Simpan ke MongoDB
             loadDataFromMongo(); // Refresh tabel
         } else {
@@ -226,10 +281,19 @@ public class MainFrame extends JFrame {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         SoundUtil.play("pen.wav");
-        List<Item> list = MongoDBHelper.loadAll(); // ambil semua dari Mongo
-        LocalBackup.saveToFile(list, "backup.ser"); // simpan ke file serialization
-        JOptionPane.showMessageDialog(this, "Data berhasil dibackup ke backup.ser");
 
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Simpan Backup");
+        fileChooser.setSelectedFile(new java.io.File("backup.ser"));
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            java.io.File fileToSave = fileChooser.getSelectedFile();
+            List<Item> list = MongoDBHelper.loadAll();
+            LocalBackup.saveToFile(list, fileToSave.getAbsolutePath());
+
+            JOptionPane.showMessageDialog(this, "Data berhasil dibackup ke " + fileToSave.getAbsolutePath());
+        }
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
@@ -272,47 +336,153 @@ public class MainFrame extends JFrame {
         this.dispose();
     }//GEN-LAST:event_logoutActionPerformed
 
+    private void btnloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnloadActionPerformed
+        // TODO add your handling code here:
+        SoundUtil.play("pen.wav");
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Pilih File Backup (.ser)");
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (!selectedFile.getName().endsWith(".ser")) {
+                JOptionPane.showMessageDialog(this, "File harus berformat .ser");
+                return;
+            }
+
+            List<Item> loadedItems = LocalBackup.loadFromFile(selectedFile.getAbsolutePath());
+
+            if (loadedItems == null || loadedItems.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "File kosong atau tidak valid.");
+                return;
+            }
+
+            int opsi = JOptionPane.showOptionDialog(
+                    this,
+                    "Data akan diimpor ke aplikasi.\n\nSebaiknya backup dahulu sebelum mengganti data.\n\nPilih opsi:",
+                    "Konfirmasi Import",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    new String[]{"Tambahkan", "Ganti Semua", "Batal"},
+                    "Tambahkan"
+            );
+
+            if (opsi == JOptionPane.CANCEL_OPTION || opsi == JOptionPane.CLOSED_OPTION) {
+                JOptionPane.showMessageDialog(this, "Import dibatalkan.");
+                return;
+            }
+
+            if (opsi == 1) { // Ganti semua
+                MongoDBHelper.deleteAll();
+            }
+
+            for (Item item : loadedItems) {
+                MongoDBHelper.insertItem(item);
+            }
+
+            loadDataFromMongo(); // Refresh tabel setelah import
+            JOptionPane.showMessageDialog(this, "Data berhasil diimpor dan disimpan ke MongoDB.");
+        }
+    }//GEN-LAST:event_btnloadActionPerformed
+
+    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
+        // TODO add your handling code here:
+        SoundUtil.play("pen.wav");
+        int selectedRow = tblBarang.getSelectedRow();
+
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Pilih data yang ingin diedit!");
+            return;
+        }
+
+        // Ambil data lama
+        String namaLama = model.getValueAt(selectedRow, 0).toString();
+        String kategoriLama = model.getValueAt(selectedRow, 1).toString();
+        String tanggalLama = model.getValueAt(selectedRow, 2).toString();
+        String kondisiLama = model.getValueAt(selectedRow, 3).toString();
+
+        // Form input baru (bisa langsung isi dengan data lama)
+        String namaBaru = JOptionPane.showInputDialog(this, "Nama Barang:", namaLama);
+        String kategoriBaru = JOptionPane.showInputDialog(this, "Kategori:", kategoriLama);
+        String tanggalBaru = JOptionPane.showInputDialog(this, "Tanggal Beli (yyyy-mm-dd):", tanggalLama);
+        String kondisiBaru = JOptionPane.showInputDialog(this, "Kondisi:", kondisiLama);
+
+        // Validasi
+        if (namaBaru == null || kategoriBaru == null || tanggalBaru == null || kondisiBaru == null) {
+            JOptionPane.showMessageDialog(this, "Edit dibatalkan.");
+            return;
+        }
+
+        // Buat objek baru dan update ke database
+        String jumlahLama = model.getValueAt(selectedRow, 4).toString();
+        String jumlahBaruStr = JOptionPane.showInputDialog(this, "Jumlah:", jumlahLama);
+        int jumlahBaru;
+        try {
+            jumlahBaru = Integer.parseInt(jumlahBaruStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Jumlah harus berupa angka.");
+            return;
+        }
+        Item itemBaru = new Item(namaBaru, kategoriBaru, tanggalBaru, kondisiBaru, jumlahBaru);
+        MongoDBHelper.updateItemByNama(namaLama, itemBaru);
+
+        loadDataFromMongo(); // refresh tabel
+        JOptionPane.showMessageDialog(this, "Data berhasil diupdate.");
+    }//GEN-LAST:event_btnEditActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        SoundUtil.play("pen.wav");
+        loadDataFromMongo();
+    }//GEN-LAST:event_jButton3ActionPerformed
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+    /* Set the Nimbus look and feel */
+    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+     */
+    try {
+        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            if ("Nimbus".equals(info.getName())) {
+                javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                break;
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainFrame().setVisible(true);
-            }
-        });
+    } catch (ClassNotFoundException ex) {
+        java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+        java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (IllegalAccessException ex) {
+        java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     }
+    //</editor-fold>
+
+    /* Create and display the form */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+        public void run() {
+            new MainFrame().setVisible(true);
+        }
+    });
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Pencarian;
+    private javax.swing.JButton btnEdit;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnTambah;
+    private javax.swing.JButton btnload;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblStatus;

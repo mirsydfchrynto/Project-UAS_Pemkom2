@@ -9,7 +9,6 @@ public class Item implements Serializable {
     private String kondisi;
     private int jumlah;
 
-    // Constructor
     public Item(String nama, String kategori, String tanggalBeli, String kondisi, int jumlah) {
         this.nama = nama;
         this.kategori = kategori;

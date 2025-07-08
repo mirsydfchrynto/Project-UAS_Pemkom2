@@ -76,13 +76,13 @@
               <Group type="102" attributes="0">
                   <EmptySpace min="15" pref="15" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="btnEdit" alignment="0" min="-2" pref="23" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="btnSimpan" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnload" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnTambah" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnHapus" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="logout" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="btnEdit" alignment="0" min="-2" pref="23" max="-2" attributes="0"/>
                           <Component id="lblStatus" alignment="3" min="-2" pref="23" max="-2" attributes="0"/>
                           <Component id="jButton3" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>

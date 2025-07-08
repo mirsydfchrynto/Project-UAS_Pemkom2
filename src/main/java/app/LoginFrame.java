@@ -14,6 +14,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
     public LoginFrame() {
         initComponents();
+        jProgressBar1.setVisible(false); // sembunyikan saat awal
         cmbLanguage.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Indonesia", "English"}));
         cmbLanguage.setSelectedItem("Indonesia");
         LanguageUtil.setLocale("id"); // default ke Bahasa Indonesia
@@ -50,6 +51,7 @@ public class LoginFrame extends javax.swing.JFrame {
         cmbLanguage = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -98,14 +100,12 @@ public class LoginFrame extends javax.swing.JFrame {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("LOGIN ACCOUNT");
 
+        jProgressBar1.setBackground(new java.awt.Color(255, 255, 255));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(cmbLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(80, 80, 80)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -119,11 +119,16 @@ public class LoginFrame extends javax.swing.JFrame {
                             .addComponent(labelPassword, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
-                            .addComponent(txtUsername))))
+                            .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+                                .addComponent(txtUsername)))))
                 .addContainerGap(80, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(343, Short.MAX_VALUE)
+                .addComponent(cmbLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(30, 30, 30))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
                 .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -142,7 +147,9 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelPassword)
                     .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -165,33 +172,60 @@ public class LoginFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_txtUsernameActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
+        btnLogin.setEnabled(false);              // Disable tombol saat loading
+        jProgressBar1.setVisible(true);          // Tampilkan progress bar
+        jProgressBar1.setIndeterminate(true);    // Mode animasi loading
+
         String username = txtUsername.getText();
         String password = new String(txtPassword.getPassword());
 
-        Document user = MongoDBHelper.findUserByUsername(username); // cari user berdasarkan username
-        if (user != null) {
-            try {
-                String encryptedPassword = user.getString("password");
-                String decryptedPassword = CryptoUtil.decrypt(encryptedPassword); // dekripsi
+        new javax.swing.SwingWorker<Boolean, Void>() {
+            private Document user;
 
-                if (password.equals(decryptedPassword)) {
-                    SoundUtil.play("success.wav");
-                    JOptionPane.showMessageDialog(this, "Login berhasil!");
-                    new MainFrame().setVisible(true); // buka main frame
-                    this.dispose();
-                } else {
-                    SoundUtil.play("notif.wav");
-                    JOptionPane.showMessageDialog(this, "Password salah!");
+            @Override
+            protected Boolean doInBackground() {
+                user = MongoDBHelper.findUserByUsername(username);
+                if (user != null) {
+                    try {
+                        String encryptedPassword = user.getString("password");
+                        String decryptedPassword = CryptoUtil.decrypt(encryptedPassword);
+                        return password.equals(decryptedPassword);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
                 }
-            } catch (Exception e) {
-                SoundUtil.play("notif.wav");
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Terjadi error saat memproses login.");
+                return false;
             }
-        } else {
-            SoundUtil.play("notif.wav");
-            JOptionPane.showMessageDialog(this, "Username tidak ditemukan!");
-        }
+
+            @Override
+            protected void done() {
+                try {
+                    boolean success = get();
+                    jProgressBar1.setIndeterminate(false);
+                    jProgressBar1.setVisible(false);
+                    btnLogin.setEnabled(true);
+
+                    if (success) {
+                        SoundUtil.play("success.wav");
+                        JOptionPane.showMessageDialog(LoginFrame.this, "Login berhasil!");
+                        new MainFrame().setVisible(true);
+                        dispose();
+                    } else {
+                        SoundUtil.play("notif.wav");
+                        JOptionPane.showMessageDialog(LoginFrame.this, user == null
+                                ? "Username tidak ditemukan!" : "Password salah!");
+                    }
+                } catch (Exception e) {
+                    jProgressBar1.setIndeterminate(false);
+                    jProgressBar1.setVisible(false);
+                    btnLogin.setEnabled(true);
+                    SoundUtil.play("notif.wav");
+                    JOptionPane.showMessageDialog(LoginFrame.this, "Terjadi error saat login.");
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
     }//GEN-LAST:event_btnLoginActionPerformed
 
     private void cmbLanguageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbLanguageActionPerformed
@@ -235,6 +269,7 @@ public class LoginFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JLabel labelPassword;
     private javax.swing.JLabel labelUsername;
     private javax.swing.JPasswordField txtPassword;
